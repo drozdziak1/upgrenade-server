@@ -7,7 +7,7 @@ extern crate serde;
 mod config;
 
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
-use failure::{Error, format_err};
+use failure::{format_err, Error};
 use lazy_static::lazy_static;
 
 use std::{collections::HashMap, env, fs::File, io::Read};
@@ -40,24 +40,28 @@ lazy_static! {
 #[get("/versions")]
 async fn versions() -> Result<impl Responder, Error> {
     Ok(HttpResponse::Ok().json(
-            CONFIG
+        CONFIG
             .version_map()?
             .iter()
             .map(|(k, v)| (format!("{}", k), v))
             .collect::<HashMap<_, _>>(),
-            ))
+    ))
 }
 
 #[get("/versions/latest")]
 async fn versions_latest() -> Result<impl Responder, Error> {
     Ok(HttpResponse::Ok().json(
-            CONFIG
+        CONFIG
             .version_map()?
             .iter()
             .last()
-            .map(|(v, l)| (v.to_string(), l))
+            .map(|(v, l)| {
+                let mut ret = HashMap::new();
+                ret.insert(v.to_string(), l);
+                ret
+            })
             .ok_or_else(|| format_err!("No versions to show"))?,
-            ))
+    ))
 }
 
 #[actix_rt::main]
@@ -69,7 +73,11 @@ async fn main() -> std::io::Result<()> {
     info!("Config:\n{}", toml::to_string(&*CONFIG).unwrap());
 
     HttpServer::new(|| App::new().service(versions).service(versions_latest))
-        .bind("127.0.0.1:5000")?
+        .bind(format!(
+            "{}:{}",
+            CONFIG.config.host,
+            CONFIG.config.port.unwrap_or(80)
+        ))?
         .run()
         .await
 }
