@@ -5,21 +5,21 @@ use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
-    config: UpgrenadeConfig,
-    version: Vec<VersionEntry>,
+    pub config: UpgrenadeConfig,
+    pub version: Vec<VersionEntry>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct VersionEntry {
-    name: String,
-    link: String,
+    pub name: String,
+    pub link: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UpgrenadeConfig {
     #[serde(default = "default_host")]
-    host: String,
-    port: Option<u16>,
+    pub host: String,
+    pub port: Option<u16>,
 }
 
 fn default_host() -> String {
